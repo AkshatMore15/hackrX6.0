@@ -4,7 +4,7 @@ import uvicorn
 if __name__ == "__main__":
     # Get the port from environment variable (GCP sets this)
     # If PORT doesn't exist, use 8000 as default
-    port = int(os.getenv("PORT", 8000))  # This converts text to number!
+    pass  # This converts text to number!
     
     # Start your FastAPI app
     uvicorn.run(
