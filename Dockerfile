@@ -35,4 +35,4 @@ ENV HOST=0.0.0.0
 ENV PORT=8000
 
 # Run the application
-CMD ["python", "start.py"]
+CMD uvicorn main:app --host 0.0.0.0 --port $PORT
