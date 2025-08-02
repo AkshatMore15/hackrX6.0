@@ -1,0 +1,85 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+dist/
+build/
+
+# Virtual Environment
+venv/
+env/
+ENV/
+
+# Environment variables
+.env
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+
+# ChromaDB
+chroma_db/
+
+# FAISS index files (will be recreated in production)
+*.pkl
+faiss_index.pkl
+chunk_metadata.pkl
+
+# Logs
+logs/
+*.log
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# macOS
+.DS_Store
+
+# Temporary files
+temp_*
+tmp_*
+
+# Test files
+test_downloads/
+
+# === FILES TO EXCLUDE FROM RENDER DEPLOYMENT ===
+
+# Test files and scripts
+test_*.txt
+test_*.py
+test_*.sh
+run_sample_test.sh
+validate_system.sh
+
+# Development and setup scripts
+setup.sh
+start.sh
+start_performance.sh
+
+# Documentation files (optional - remove # to include in deployment)
+DEPLOYMENT.md
+FORMAT_UPDATE.md
+OPTIMIZATION_REPORT.md
+PROJECT_COMPLETE.md
+# README.md  # Uncomment to exclude README from deployment
+
+# Backup files
+*_backup.py
+embedding_backup.py
+
+# Performance testing files
+performance.py
+
+# Local development files
+.env.local
+.env.development
+
+# Railway specific files (not needed for Render)
+railway.json
