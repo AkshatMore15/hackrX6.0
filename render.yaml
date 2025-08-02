@@ -4,7 +4,7 @@ services:
     env: python
     plan: starter
     buildCommand: "./build.sh"
-    startCommand: "uvicorn main:app --host 0.0.0.0 --port $PORT --workers 1"
+    startCommand: "uvicorn main:app --host 0.0.0.0 --port ${PORT:-8000} --workers 1"
     healthCheckPath: "/hackrx/health"
     envVars:
       - key: PYTHON_VERSION
