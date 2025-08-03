@@ -42,37 +42,46 @@ class DocumentParser:
     
     async def download_file_async(self, url: str) -> str:
         """Async download with caching"""
-        try:
-            # Check cache first
-            url_hash = self.get_content_hash(url)
-            if url_hash in file_hash_cache:
-                cached_path = file_hash_cache[url_hash]
-                if os.path.exists(cached_path):
-                    return cached_path
-            
-            response = await self.client.get(url)
-            response.raise_for_status()
-            
-            # Get file extension from URL or content-type
-            parsed_url = urlparse(url)
-            file_extension = os.path.splitext(parsed_url.path)[1]
-            
-            if not file_extension:
-                content_type = response.headers.get('content-type', '')
-                if 'pdf' in content_type:
-                    file_extension = '.pdf'
-                elif 'word' in content_type or 'docx' in content_type:
-                    file_extension = '.docx'
-                else:
-                    file_extension = '.txt'
-            
-            # Create temporary file
-            with tempfile.NamedTemporaryFile(delete=False, suffix=file_extension) as temp_file:
-                temp_file.write(response.content)
-                return temp_file.name
-                
-        except Exception as e:
-            raise Exception(f"Failed to download file: {str(e)}")
+        """Robust async download for any PDF from the web"""
+        import random
+        max_retries = 4
+        backoff = 2
+        url_hash = self.get_content_hash(url)
+        if url_hash in file_hash_cache:
+            cached_path = file_hash_cache[url_hash]
+            if os.path.exists(cached_path):
+                return cached_path
+        last_error = None
+        for attempt in range(max_retries):
+            try:
+                response = await self.client.get(url, follow_redirects=True)
+                # Retry on transient errors
+                if response.status_code in (502, 503, 504, 429):
+                    last_error = f"HTTP {response.status_code}"
+                    await asyncio.sleep(backoff * (attempt + 1) + random.uniform(0, 1))
+                    continue
+                response.raise_for_status()
+                # Check for PDF content-type
+                content_type = response.headers.get('content-type', '').lower()
+                parsed_url = urlparse(url)
+                file_extension = os.path.splitext(parsed_url.path)[1]
+                if not file_extension or file_extension not in ['.pdf', '.docx', '.txt']:
+                    if 'pdf' in content_type:
+                        file_extension = '.pdf'
+                    elif 'word' in content_type or 'docx' in content_type:
+                        file_extension = '.docx'
+                    else:
+                        file_extension = '.txt'
+                # Stream response to file
+                with tempfile.NamedTemporaryFile(delete=False, suffix=file_extension) as temp_file:
+                    async for chunk in response.aiter_bytes():
+                        temp_file.write(chunk)
+                    file_hash_cache[url_hash] = temp_file.name
+                    return temp_file.name
+            except Exception as e:
+                last_error = str(e)
+                await asyncio.sleep(backoff * (attempt + 1) + random.uniform(0, 1))
+        raise Exception(f"Failed to download file after {max_retries} attempts: {last_error}")
     
     @staticmethod
     def parse_pdf(file_path: str) -> str:
